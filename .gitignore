@@ -1,0 +1,20 @@
+# Root Project Exclusions
+_archive/
+.env
+
+# MacOS
+.DS_Store
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+
+# Agent frameworks
+.claude/
+.codex/
+.gemini/
+.planning/
