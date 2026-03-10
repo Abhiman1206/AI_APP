@@ -51,3 +51,29 @@ For detailed documentation, refer to the files in the `docs/` folder:
 
 ---
 *Developed for the Intelli-Credit Challenge hackathon.*
+
+## 🚀 Deployment Guide
+
+### 1. Backend Deployment (Railway)
+
+We recommend deploying the FastAPI backend on **Railway** because it natively supports Dockerfiles and assigns dynamic ports securely out-of-the-box.
+
+1. Create a [Railway](https://railway.app/) account and click **New Project** -> **Deploy from GitHub repo**.
+2. Select your `AI_APP` repository.
+3. Under the deployment settings, configure the **Root Directory** to be `/backend`.
+4. Railway will automatically detect the `Dockerfile` and build the Python API container. 
+5. The container successfully binds to Railway's dynamic `$PORT`.
+6. Once deployed, note down the generated public URL (e.g., `https://intellicredit-backend.up.railway.app`).
+
+### 2. Frontend Deployment (Vercel)
+
+We recommend deploying the Next.js frontend on **Vercel** as it has first-party support and handles edge optimization perfectly.
+
+1. Create a [Vercel](https://vercel.com) account and click **Add New Project**.
+2. Import your `AI_APP` repository from GitHub.
+3. In the project configuration:
+   - Expand the **Environment Variables** section.
+   - Add a new variable: 
+     - **Name:** `NEXT_PUBLIC_API_URL`
+     - **Value:** `[Your Railway backend URL]` (no trailing slash, e.g., `https://intellicredit-backend.up.railway.app`)
+4. Click **Deploy**. Vercel will automatically build the Next.js framework and securely map API requests to your Railway backend.
