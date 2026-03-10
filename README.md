@@ -72,6 +72,7 @@ We recommend deploying the Next.js frontend on **Vercel** as it has first-party 
 1. Create a [Vercel](https://vercel.com) account and click **Add New Project**.
 2. Import your `AI_APP` repository from GitHub.
 3. In the project configuration:
+   - **CRITICAL:** Set the **Root Directory** to `frontend`.
    - Expand the **Environment Variables** section.
    - Add a new variable: 
      - **Name:** `NEXT_PUBLIC_API_URL`
