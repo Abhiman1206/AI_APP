@@ -69,7 +69,7 @@ export default function UploadPage() {
                                 placeholder="Enter company name"
                             />
                         </div>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-4)" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "var(--space-4)" }}>
                             <div className="input-group">
                                 <label className="input-label">Loan Amount (₹) *</label>
                                 <input
@@ -112,7 +112,7 @@ export default function UploadPage() {
                                 onChange={(e) => setSiteVisitNotes(e.target.value)}
                                 placeholder='e.g., "Factory found operating at 40% capacity. Machinery appears well maintained but underutilized. Management team was cooperative."'
                                 rows={4}
-                                style={{ resize: "vertical", minHeight: "80px", fontFamily: "inherit" }}
+                                style={{ resize: "vertical", minHeight: "100px", fontFamily: "inherit", paddingTop: "var(--space-3)" }}
                             />
                         </div>
                     </div>
@@ -179,6 +179,38 @@ function getMockResult(company: string, amount: number) {
             summary_text: `Credit appraisal for ${company} requesting ₹${amount.toLocaleString("en-IN")}. Overall 5Cs score: 79.1/100. Recommendation: APPROVE. Strongest pillar: Capacity (88/100). Weakest pillar: Character (73/100).`,
             site_visit_notes: null,
             risk_flags: [],
+            validation_checks: {
+                engine: "groq",
+                status: "warn",
+                checks: [
+                    {
+                        name: "profitability_consistency",
+                        status: "warn",
+                        details: "Net profit appears volatile across periods.",
+                    },
+                ],
+                warnings: ["Net profit trend shows quarter-wise variance."],
+                recommended_null_fields: [],
+                deterministic: {
+                    assets_equals_liabilities_plus_equity: {
+                        status: "unknown",
+                        details: "Liabilities/equity fields unavailable.",
+                    },
+                },
+            },
+        },
+        ingestion_metadata: {
+            mode: "upload",
+            parsed_files: [
+                {
+                    filename: "Annual report FY 2018-19.pdf",
+                    page_count: 49,
+                    targeted_pages: 49,
+                    targeted_page_numbers: Array.from({ length: 49 }, (_, i) => i + 1),
+                    deep_scan_pages: 49,
+                    deep_scan_page_numbers: Array.from({ length: 49 }, (_, i) => i + 1),
+                },
+            ],
         },
     };
 }

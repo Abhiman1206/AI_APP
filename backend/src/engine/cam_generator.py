@@ -81,6 +81,9 @@ def generate_cam(
     five_cs: FiveCsScore,
     circular_flag: dict | None = None,
     site_visit_notes: str | None = None,
+    ml_result: dict | None = None,
+    anomaly_result: dict | None = None,
+    validation_result: dict | None = None,
 ) -> CAMReport:
     """Generate a complete CAM report from all analyzed data.
 
@@ -108,6 +111,30 @@ def generate_cam(
             recommendation = "REFER"
             risk_flags.append("Recommendation downgraded from APPROVE to REFER due to high GST-Bank variance.")
 
+    # Blend with ML recommendation when available.
+    if ml_result:
+        ml_reco = ml_result.get("model_recommendation")
+        if ml_reco == "REJECT":
+            recommendation = "REJECT"
+            risk_flags.append("ML risk model indicates high default probability; recommendation set to REJECT.")
+        elif ml_reco == "REFER" and recommendation == "APPROVE":
+            recommendation = "REFER"
+            risk_flags.append("ML model indicates borderline risk; recommendation downgraded to REFER.")
+
+    if anomaly_result and anomaly_result.get("detected"):
+        for alert in anomaly_result.get("alerts", []):
+            risk_flags.append(f"Anomaly: {alert}")
+        if recommendation == "APPROVE":
+            recommendation = "REFER"
+            risk_flags.append("Recommendation downgraded to REFER due to anomaly detection flags.")
+
+    if validation_result:
+        for warn in validation_result.get("warnings", []):
+            risk_flags.append(f"Validation: {warn}")
+        if validation_result.get("status") == "fail" and recommendation == "APPROVE":
+            recommendation = "REFER"
+            risk_flags.append("Recommendation downgraded to REFER due to failed financial consistency checks.")
+
     risk_timeline = [
         RiskTimelineEntry(**entry)
         for entry in research_data.get("risk_timeline", [])
@@ -117,6 +144,15 @@ def generate_cam(
         company_name, loan_amount, recommendation, overall,
         five_cs, research_data, circular_flag, site_visit_notes,
     )
+
+    pricing_rationale = None
+    if ml_result:
+        pricing_rationale = {
+            "risk_premium_bps": ml_result.get("risk_premium_bps"),
+            "loan_limit_pct": ml_result.get("loan_limit_pct"),
+            "default_probability": ml_result.get("default_probability"),
+            "basis": "ML risk model (XGBoost + SMOTE) with macro and behavior features",
+        }
 
     cam = CAMReport(
         company_name=company_name,
@@ -135,11 +171,18 @@ def generate_cam(
             litigation_flags=research_data.get("litigation_flags", []),
             news_sentiment=research_data.get("news_sentiment"),
             risk_timeline=risk_timeline,
+            research_sources=research_data.get("research_sources", []),
+            connector_status=research_data.get("connector_status"),
         ),
         five_cs=five_cs,
         summary_text=summary_text,
         site_visit_notes=site_visit_notes,
         risk_flags=risk_flags,
+        pricing_rationale=pricing_rationale,
+        ml_recommendation=ml_result,
+        anomaly_detection=anomaly_result,
+        explainability=(ml_result or {}).get("explainability"),
+        validation_checks=validation_result,
     )
 
     return cam

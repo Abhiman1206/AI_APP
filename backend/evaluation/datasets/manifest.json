@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "created_at": "2026-03-15",
+  "split_policy": {
+    "calibration": 0.2,
+    "evaluation": 0.4,
+    "holdout": 0.4
+  },
+  "documents": [
+    {
+      "doc_id": "seed-bank-001",
+      "relative_path": "data/test_pdfs/bank_statement_abc_industries.pdf",
+      "document_type": "bank",
+      "scan_type": "native",
+      "split": "calibration"
+    },
+    {
+      "doc_id": "seed-gst-001",
+      "relative_path": "data/test_pdfs/gst_return_abc_industries.pdf",
+      "document_type": "gst",
+      "scan_type": "native",
+      "split": "evaluation"
+    },
+    {
+      "doc_id": "seed-fin-001",
+      "relative_path": "data/test_pdfs/balance_sheet_abc_industries.pdf",
+      "document_type": "financial",
+      "scan_type": "native",
+      "split": "holdout"
+    }
+  ]
+}

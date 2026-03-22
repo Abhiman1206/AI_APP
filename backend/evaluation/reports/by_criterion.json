@@ -1,0 +1,33 @@
+{
+  "extraction_accuracy": {
+    "field_f1": 0.746031746031746,
+    "numeric_tolerance_pass_rate": 0.7222222222222222,
+    "numeric_tolerance_pass_rate_profiled": 0.7222222222222222,
+    "numeric_tolerance_by_class": {
+      "currency": {
+        "passed": 3,
+        "total": 4,
+        "pass_rate": 0.75
+      },
+      "count": {
+        "passed": 0,
+        "total": 1,
+        "pass_rate": 0.0
+      },
+      "ratio": {
+        "passed": 1,
+        "total": 1,
+        "pass_rate": 1.0
+      }
+    },
+    "tolerance_profile_used": {
+      "currency": 0.03,
+      "ratio": 0.01,
+      "percentage": 0.02,
+      "count": 0.0,
+      "default": 0.05
+    },
+    "ocr_cer": 0.2502540650406504,
+    "hallucination_rate": 0.08333333333333333
+  }
+}

@@ -10,13 +10,15 @@ import { PipelineResponse } from "@/lib/types";
 
 export default function ScoringPage() {
     const router = useRouter();
-    const [data, setData] = useState<PipelineResponse | null>(null);
+    const [data] = useState<PipelineResponse | null>(() => {
+        if (typeof window === "undefined") return null;
+        const stored = sessionStorage.getItem("pipeline_result");
+        return stored ? (JSON.parse(stored) as PipelineResponse) : null;
+    });
 
     useEffect(() => {
-        const stored = sessionStorage.getItem("pipeline_result");
-        if (stored) setData(JSON.parse(stored));
-        else router.push("/demo/upload");
-    }, [router]);
+        if (!data) router.push("/demo/upload");
+    }, [data, router]);
 
     if (!data) return null;
 
@@ -35,7 +37,7 @@ export default function ScoringPage() {
                         Comprehensive scoring across Character, Capacity, Capital, Collateral, and Conditions.
                     </p>
 
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-8)" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "var(--space-8)" }}>
                         {/* Radar / Scores */}
                         <div className="animate-in stagger-2">
                             <FiveCsRadar scores={fiveCs} />
@@ -46,7 +48,7 @@ export default function ScoringPage() {
                             <h3 style={{ marginBottom: "var(--space-4)", fontSize: "1.125rem" }}>
                                 🎛️ What-If Analysis
                             </h3>
-                            <p style={{ color: "var(--text-muted)", fontSize: "0.875rem", marginBottom: "var(--space-5)" }}>
+                            <p style={{ color: "var(--text-secondary)", fontSize: "0.875rem", marginBottom: "var(--space-5)", lineHeight: 1.6 }}>
                                 Adjust parameters to see how changes might affect the credit decision.
                             </p>
                             <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-4)" }}>

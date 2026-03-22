@@ -1,0 +1,23 @@
+{
+  "doc_id": "seed-bank-001",
+  "document_type": "bank",
+  "scan_type": "native",
+  "metadata": {
+    "source": "seed"
+  },
+  "fields": [
+    {
+      "name": "account_holder",
+      "value": "ABC Industries Pvt Ltd",
+      "criticality": "important",
+      "page": 1
+    },
+    {
+      "name": "avg_monthly_credits",
+      "value": 3500000,
+      "unit": "INR",
+      "criticality": "critical",
+      "page": 1
+    }
+  ]
+}

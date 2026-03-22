@@ -1,5 +1,13 @@
 import type { Metadata } from "next";
+import { Sora, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
+
+const sora = Sora({ subsets: ["latin"], weight: ["500", "600", "700", "800"], variable: "--font-display" });
+const sourceSans3 = Source_Sans_3({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-body",
+});
 
 export const metadata: Metadata = {
   title: "Intelli-Credit | AI-Powered Credit Appraisal",
@@ -12,13 +20,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <head>
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body>{children}</body>
+      <body className={`${sora.variable} ${sourceSans3.variable}`}>{children}</body>
     </html>
   );
 }

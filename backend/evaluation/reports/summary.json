@@ -1,0 +1,11 @@
+{
+  "doc_count": 3.0,
+  "precision": 0.7222222222222222,
+  "recall": 0.7777777777777777,
+  "f1": 0.746031746031746,
+  "numeric_tolerance_pass_rate": 0.7222222222222222,
+  "numeric_tolerance_pass_rate_profiled": 0.7222222222222222,
+  "hallucination_rate": 0.08333333333333333,
+  "ocr_cer": 0.2502540650406504,
+  "ocr_wer": 1.8
+}

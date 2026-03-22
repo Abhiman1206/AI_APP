@@ -1,10 +1,11 @@
 """CAM PDF Exporter — generates a professional PDF Credit Appraisal Memorandum using reportlab."""
 
 import io
+import base64
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.platypus import (
-    SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, HRFlowable,
+    SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, HRFlowable, Image,
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import mm
@@ -75,6 +76,68 @@ def generate_cam_pdf(cam_data: dict) -> bytes:
     summary = cam_data.get("summary_text", "No summary available.")
     elements.append(Paragraph(summary, normal_style))
     elements.append(Spacer(1, 10))
+
+    # ML Risk Model Summary
+    ml = cam_data.get("ml_recommendation") or {}
+    if ml:
+        elements.append(Paragraph("ML Risk Scoring (XGBoost + SMOTE)", heading_style))
+        ml_data = [
+            ["Metric", "Value"],
+            ["Default Probability", f"{float(ml.get('default_probability', 0)) * 100:.1f}%"],
+            ["ML Credit Score", f"{ml.get('ml_credit_score', 'N/A')}/100"],
+            ["Model Recommendation", str(ml.get('model_recommendation', 'N/A'))],
+        ]
+        ml_table = Table(ml_data, colWidths=[200, 320])
+        ml_table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), BRAND_DARK),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, -1), 9),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ]))
+        elements.append(ml_table)
+        elements.append(Spacer(1, 8))
+
+        contrib = ml.get("feature_contributions") or {}
+        if contrib:
+            elements.append(Paragraph("Top Feature Contributions", normal_style))
+            for key, val in list(contrib.items())[:8]:
+                elements.append(Paragraph(f"• {key}: {val:+.4f}", normal_style))
+            elements.append(Spacer(1, 6))
+
+    # Pricing rationale
+    pricing = cam_data.get("pricing_rationale") or {}
+    if pricing:
+        elements.append(Paragraph("Risk-Based Pricing Rationale", heading_style))
+        elements.append(Paragraph(f"Recommended premium: {pricing.get('risk_premium_bps', 'N/A')} bps over base rate.", normal_style))
+        elements.append(Paragraph(f"Suggested sanction limit: {pricing.get('loan_limit_pct', 'N/A')}% of requested amount.", normal_style))
+        elements.append(Paragraph(f"Model basis: {pricing.get('basis', 'N/A')}", normal_style))
+        elements.append(Spacer(1, 8))
+
+    # Anomaly detection summary
+    anomaly = cam_data.get("anomaly_detection") or {}
+    if anomaly:
+        elements.append(Paragraph("Anomaly Detection", heading_style))
+        elements.append(Paragraph(f"Detected: {'Yes' if anomaly.get('detected') else 'No'}", normal_style))
+        if anomaly.get("anomaly_score") is not None:
+            elements.append(Paragraph(f"Isolation score: {anomaly.get('anomaly_score')}", normal_style))
+        for alert in anomaly.get("alerts") or []:
+            elements.append(Paragraph(f"• {alert}", ParagraphStyle("AnomalyAlert", parent=normal_style, textColor=BRAND_AMBER)))
+        elements.append(Spacer(1, 8))
+
+    # SHAP explainability chart
+    explainability = cam_data.get("explainability") or {}
+    shap_png_b64 = explainability.get("shap_plot_png_b64")
+    if shap_png_b64:
+        try:
+            image_bytes = base64.b64decode(shap_png_b64)
+            elements.append(Paragraph("SHAP Explainability", heading_style))
+            elements.append(Paragraph("Feature-level contribution of variables to predicted default risk.", small_style))
+            elements.append(Spacer(1, 5))
+            elements.append(Image(io.BytesIO(image_bytes), width=165 * mm, height=82 * mm))
+            elements.append(Spacer(1, 8))
+        except Exception:
+            pass
 
     # Risk Flags
     risk_flags = cam_data.get("risk_flags", [])
@@ -150,11 +213,28 @@ def generate_cam_pdf(cam_data: dict) -> bytes:
     elements.append(Paragraph("Research & Risk Intelligence", heading_style))
     elements.append(Paragraph(f"MCA Status: {research.get('mca_status', 'N/A')}", normal_style))
     elements.append(Paragraph(f"News Sentiment: {research.get('news_sentiment', 'N/A')}", normal_style))
+    connector_status = research.get("connector_status") or {}
+    if connector_status:
+        elements.append(
+            Paragraph(
+                f"Live Connector: {connector_status.get('provider', 'N/A')} | Sources: {connector_status.get('sources_count', 'N/A')}",
+                normal_style,
+            )
+        )
     lits = research.get("litigation_flags", [])
     if lits:
         elements.append(Paragraph("Litigation Flags:", normal_style))
         for lit in lits:
             elements.append(Paragraph(f"  • {lit}", normal_style))
+
+    sources = (research.get("research_sources") or [])[:5]
+    if sources:
+        elements.append(Paragraph("Key Web Sources:", normal_style))
+        for src in sources:
+            title = src.get("title") or "Untitled"
+            url = src.get("url") or ""
+            category = src.get("category") or "web"
+            elements.append(Paragraph(f"  • [{category}] {title} - {url}", small_style))
     elements.append(Spacer(1, 10))
 
     # Site Visit Notes

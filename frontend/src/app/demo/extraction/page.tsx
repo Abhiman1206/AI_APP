@@ -9,13 +9,15 @@ import { PipelineResponse } from "@/lib/types";
 
 export default function ExtractionPage() {
     const router = useRouter();
-    const [data, setData] = useState<PipelineResponse | null>(null);
+    const [data] = useState<PipelineResponse | null>(() => {
+        if (typeof window === "undefined") return null;
+        const stored = sessionStorage.getItem("pipeline_result");
+        return stored ? (JSON.parse(stored) as PipelineResponse) : null;
+    });
 
     useEffect(() => {
-        const stored = sessionStorage.getItem("pipeline_result");
-        if (stored) setData(JSON.parse(stored));
-        else router.push("/demo/upload");
-    }, [router]);
+        if (!data) router.push("/demo/upload");
+    }, [data, router]);
 
     if (!data) return null;
 
@@ -23,6 +25,7 @@ export default function ExtractionPage() {
     const fin = report.extracted_data.financial_highlights as Record<string, number> | undefined;
     const gst = report.extracted_data.gst_summary as Record<string, unknown> | undefined;
     const bank = report.extracted_data.bank_summary as Record<string, unknown> | undefined;
+    const parsedFiles = data.ingestion_metadata?.parsed_files || [];
 
     return (
         <div className="page-wrapper">
@@ -51,9 +54,54 @@ export default function ExtractionPage() {
                         </div>
                     )}
 
+                    {/* Ingestion Summary */}
+                    {parsedFiles.length > 0 && (
+                        <Card className="animate-in stagger-3" style={{ marginBottom: "var(--space-6)" }}>
+                            <h3 style={{ marginBottom: "var(--space-4)", fontSize: "1.125rem" }}>
+                                🧭 Ingestion Routing Summary
+                            </h3>
+                            <div style={{ overflowX: "auto" }}>
+                                <table className="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>File</th>
+                                            <th>Pages</th>
+                                            <th>Targeted</th>
+                                            <th>Deep Scan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {parsedFiles.map((f) => (
+                                            <tr key={f.filename}>
+                                                <td style={{ fontWeight: 600 }}>{f.filename}</td>
+                                                <td>{f.page_count}</td>
+                                                <td>
+                                                    {f.targeted_pages}
+                                                    {f.targeted_page_numbers && f.targeted_page_numbers.length > 0 && (
+                                                        <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                                                            {f.targeted_page_numbers[0]} to {f.targeted_page_numbers[f.targeted_page_numbers.length - 1]}
+                                                        </div>
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {f.deep_scan_pages ?? 0}
+                                                    {f.deep_scan_page_numbers && f.deep_scan_page_numbers.length > 0 && (
+                                                        <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                                                            {f.deep_scan_page_numbers.length} pages classified
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </Card>
+                    )}
+
                     {/* GST Summary */}
                     {gst && (
-                        <Card className="animate-in stagger-3" style={{ marginBottom: "var(--space-6)" }}>
+                        <Card className="animate-in stagger-4" style={{ marginBottom: "var(--space-6)" }}>
                             <h3 style={{ marginBottom: "var(--space-4)", fontSize: "1.125rem" }}>🧾 GST Summary</h3>
                             <table className="data-table">
                                 <tbody>
@@ -67,7 +115,7 @@ export default function ExtractionPage() {
 
                     {/* Bank Summary */}
                     {bank && (
-                        <Card className="animate-in stagger-4" style={{ marginBottom: "var(--space-8)" }}>
+                        <Card className="animate-in stagger-5" style={{ marginBottom: "var(--space-8)" }}>
                             <h3 style={{ marginBottom: "var(--space-4)", fontSize: "1.125rem" }}>🏦 Bank Statement Summary</h3>
                             <table className="data-table">
                                 <tbody>

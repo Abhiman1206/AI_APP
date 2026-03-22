@@ -1,0 +1,23 @@
+{
+  "doc_id": "seed-gst-001",
+  "document_type": "gst",
+  "scan_type": "native",
+  "metadata": {
+    "source": "seed"
+  },
+  "fields": [
+    {
+      "name": "gst_number",
+      "value": "27ABCDE1234F1Z5",
+      "criticality": "critical",
+      "page": 1
+    },
+    {
+      "name": "total_turnover",
+      "value": 12000000,
+      "unit": "INR",
+      "criticality": "important",
+      "page": 1
+    }
+  ]
+}

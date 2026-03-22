@@ -9,13 +9,15 @@ import { PipelineResponse } from "@/lib/types";
 
 export default function ResearchPage() {
     const router = useRouter();
-    const [data, setData] = useState<PipelineResponse | null>(null);
+    const [data] = useState<PipelineResponse | null>(() => {
+        if (typeof window === "undefined") return null;
+        const stored = sessionStorage.getItem("pipeline_result");
+        return stored ? (JSON.parse(stored) as PipelineResponse) : null;
+    });
 
     useEffect(() => {
-        const stored = sessionStorage.getItem("pipeline_result");
-        if (stored) setData(JSON.parse(stored));
-        else router.push("/demo/upload");
-    }, [router]);
+        if (!data) router.push("/demo/upload");
+    }, [data, router]);
 
     if (!data) return null;
 
@@ -64,6 +66,12 @@ export default function ResearchPage() {
                         </div>
                     </div>
 
+                    {research.connector_status && (
+                        <div className="animate-in stagger-2" style={{ marginBottom: "var(--space-6)", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
+                            Live Connector: {research.connector_status.provider || "Unknown"} | Source Count: {research.connector_status.sources_count ?? 0}
+                        </div>
+                    )}
+
                     {/* Litigation Details */}
                     {research.litigation_flags.length > 0 && (
                         <div className="animate-in stagger-3" style={{ marginBottom: "var(--space-8)" }}>
@@ -92,6 +100,33 @@ export default function ResearchPage() {
                         <h3 style={{ marginBottom: "var(--space-4)", fontSize: "1.125rem" }}>📅 Risk Event Timeline</h3>
                         <RiskTimeline entries={research.risk_timeline} />
                     </div>
+
+                    {(research.research_sources || []).length > 0 && (
+                        <div className="animate-in stagger-4" style={{ marginBottom: "var(--space-8)" }}>
+                            <h3 style={{ marginBottom: "var(--space-4)", fontSize: "1.125rem" }}>🌐 Source Evidence</h3>
+                            <div style={{ display: "grid", gap: "var(--space-2)" }}>
+                                {(research.research_sources || []).slice(0, 8).map((src, idx) => (
+                                    <a
+                                        key={`${src.url}-${idx}`}
+                                        href={src.url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        style={{
+                                            display: "block",
+                                            border: "1px solid var(--border)",
+                                            borderRadius: "var(--radius-md)",
+                                            padding: "var(--space-3)",
+                                            color: "var(--text-secondary)",
+                                            textDecoration: "none",
+                                        }}
+                                    >
+                                        <div style={{ fontWeight: 600, color: "var(--text-primary)", marginBottom: "var(--space-1)" }}>{src.title}</div>
+                                        <div style={{ fontSize: "0.8rem" }}>{src.category || "web"} • {src.published_at || "date unknown"}</div>
+                                    </a>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Navigation */}
                     <div style={{ display: "flex", justifyContent: "space-between" }}>

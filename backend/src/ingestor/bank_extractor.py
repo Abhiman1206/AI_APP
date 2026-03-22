@@ -16,7 +16,7 @@ def extract_bank_data(pdf_text: str) -> dict:
             "bank_name": None,
             "account_type": None,
             "period": None,
-            "error": str(e),
+            "error": "Bank statement extraction failed or document not provided",
             "summary": {},
             "cash_flow_months": [],
         }

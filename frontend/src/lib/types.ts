@@ -44,6 +44,20 @@ export interface ResearchResult {
     litigation_flags: string[];
     news_sentiment?: string;
     risk_timeline: RiskTimelineEntry[];
+    research_sources?: {
+        url: string;
+        title: string;
+        snippet?: string;
+        published_at?: string;
+        category?: string;
+        source?: string;
+    }[];
+    connector_status?: {
+        provider?: string;
+        hard_fail_policy?: string;
+        channels?: Record<string, number>;
+        sources_count?: number;
+    };
 }
 
 export interface CAMReport {
@@ -58,9 +72,58 @@ export interface CAMReport {
     summary_text: string;
     site_visit_notes?: string | null;
     risk_flags?: string[];
+    validation_checks?: ValidationChecks;
+}
+
+export interface ValidationCheckItem {
+    name: string;
+    status: "pass" | "warn" | "fail" | "unknown";
+    details: string;
+}
+
+export interface ValidationDeterministicCheck {
+    status: "pass" | "warn" | "fail" | "unknown";
+    details: string;
+}
+
+export interface ValidationChecks {
+    engine: string;
+    status: "pass" | "warn" | "fail" | "unknown";
+    checks: ValidationCheckItem[];
+    warnings: string[];
+    recommended_null_fields: string[];
+    deterministic?: Record<string, ValidationDeterministicCheck>;
+}
+
+export interface ParsedFileIngestion {
+    filename: string;
+    page_count: number;
+    targeted_pages: number;
+    targeted_page_numbers?: number[];
+    deep_scan_pages?: number;
+    deep_scan_page_numbers?: number[];
+    category?: string;
+    page_index?: {
+        document_id: string;
+        artifact_path: string;
+        entry_count: number;
+    };
+    metadata?: Record<string, unknown>;
+    error?: string;
+}
+
+export interface IngestionMetadata {
+    mode: "upload" | "batch" | string;
+    parsed_files: ParsedFileIngestion[];
+    page_index_files?: {
+        document_id: string;
+        artifact_path: string;
+        entry_count: number;
+    }[];
 }
 
 export interface PipelineResponse {
     status: string;
     cam_report: CAMReport;
+    ingestion_metadata?: IngestionMetadata;
 }

@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-03-15T16:36:26.079185+00:00",
+  "output_dir": "C:\\Users\\Asus\\Desktop\\IIT  Hackathon\\backend\\evaluation\\reports",
+  "generated_files": [
+    "summary.json",
+    "by_criterion.json",
+    "by_doc_type.json",
+    "ocr_quality_report.json",
+    "failures.csv"
+  ],
+  "doc_count": 3,
+  "f1": 0.746031746031746,
+  "hallucination_rate": 0.08333333333333333
+}

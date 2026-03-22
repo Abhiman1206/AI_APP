@@ -1,0 +1,90 @@
+{
+  "summary": {
+    "doc_count": 3,
+    "avg_cer": 0.2502540650406504,
+    "avg_wer": 1.8,
+    "p90_cer": 0.28125,
+    "p90_wer": 1.8,
+    "max_cer": 0.28125,
+    "max_wer": 1.8
+  },
+  "by_doc_type": {
+    "bank": {
+      "doc_count": 1,
+      "avg_cer": 0.25,
+      "avg_wer": 1.8,
+      "p90_cer": 0.25,
+      "p90_wer": 1.8,
+      "max_cer": 0.25,
+      "max_wer": 1.8
+    },
+    "gst": {
+      "doc_count": 1,
+      "avg_cer": 0.28125,
+      "avg_wer": 1.8,
+      "p90_cer": 0.28125,
+      "p90_wer": 1.8,
+      "max_cer": 0.28125,
+      "max_wer": 1.8
+    },
+    "financial": {
+      "doc_count": 1,
+      "avg_cer": 0.21951219512195122,
+      "avg_wer": 1.8,
+      "p90_cer": 0.21951219512195122,
+      "p90_wer": 1.8,
+      "max_cer": 0.21951219512195122,
+      "max_wer": 1.8
+    }
+  },
+  "per_doc": [
+    {
+      "doc_id": "seed-gst-001",
+      "document_type": "gst",
+      "ocr_reference_chars": 32,
+      "ocr_hypothesis_chars": 33,
+      "ocr_char_delta": 1,
+      "ocr_char_delta_ratio": 0.03125,
+      "ocr_reference_tokens": 5,
+      "ocr_hypothesis_tokens": 5,
+      "ocr_token_delta": 0,
+      "ocr_token_delta_ratio": 0.0,
+      "ocr_cer": 0.28125,
+      "ocr_wer": 1.8
+    },
+    {
+      "doc_id": "seed-bank-001",
+      "document_type": "bank",
+      "ocr_reference_chars": 36,
+      "ocr_hypothesis_chars": 37,
+      "ocr_char_delta": 1,
+      "ocr_char_delta_ratio": 0.027777777777777776,
+      "ocr_reference_tokens": 5,
+      "ocr_hypothesis_tokens": 5,
+      "ocr_token_delta": 0,
+      "ocr_token_delta_ratio": 0.0,
+      "ocr_cer": 0.25,
+      "ocr_wer": 1.8
+    },
+    {
+      "doc_id": "seed-fin-001",
+      "document_type": "financial",
+      "ocr_reference_chars": 41,
+      "ocr_hypothesis_chars": 42,
+      "ocr_char_delta": 1,
+      "ocr_char_delta_ratio": 0.024390243902439025,
+      "ocr_reference_tokens": 5,
+      "ocr_hypothesis_tokens": 5,
+      "ocr_token_delta": 0,
+      "ocr_token_delta_ratio": 0.0,
+      "ocr_cer": 0.21951219512195122,
+      "ocr_wer": 1.8
+    }
+  ],
+  "worst_hotspots": {
+    "highest_cer_doc": "seed-gst-001",
+    "highest_wer_doc": "seed-bank-001",
+    "largest_char_delta_doc": "seed-gst-001",
+    "largest_token_delta_doc": "seed-bank-001"
+  }
+}

@@ -95,6 +95,84 @@ export function CAMPreview({ report }: CAMPreviewProps) {
                     </p>
                 </div>
 
+                {/* Validation Checks */}
+                {report.validation_checks && (
+                    <div style={{ marginBottom: "var(--space-6)" }}>
+                        <h4 style={{ marginBottom: "var(--space-3)", color: "var(--text-secondary)" }}>
+                            Validation Checks
+                        </h4>
+                        <div style={{ display: "flex", gap: "var(--space-2)", flexWrap: "wrap", marginBottom: "var(--space-3)" }}>
+                            <span className="badge badge-info">Engine: {report.validation_checks.engine}</span>
+                            <span
+                                className={`badge ${
+                                    report.validation_checks.status === "pass"
+                                        ? "badge-success"
+                                        : report.validation_checks.status === "fail"
+                                            ? "badge-danger"
+                                            : "badge-warning"
+                                }`}
+                            >
+                                Status: {report.validation_checks.status}
+                            </span>
+                        </div>
+
+                        {report.validation_checks.checks.length > 0 && (
+                            <table className="data-table" style={{ marginBottom: "var(--space-3)" }}>
+                                <thead>
+                                    <tr>
+                                        <th>Check</th>
+                                        <th>Status</th>
+                                        <th>Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {report.validation_checks.checks.map((check, idx) => (
+                                        <tr key={`${check.name}-${idx}`}>
+                                            <td style={{ fontWeight: 600 }}>{check.name}</td>
+                                            <td>
+                                                <span
+                                                    className={`badge ${
+                                                        check.status === "pass"
+                                                            ? "badge-success"
+                                                            : check.status === "fail"
+                                                                ? "badge-danger"
+                                                                : check.status === "unknown"
+                                                                    ? "badge-info"
+                                                                    : "badge-warning"
+                                                    }`}
+                                                >
+                                                    {check.status}
+                                                </span>
+                                            </td>
+                                            <td>{check.details}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+
+                        {report.validation_checks.warnings.length > 0 && (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-2)" }}>
+                                {report.validation_checks.warnings.map((w, i) => (
+                                    <div
+                                        key={`${w}-${i}`}
+                                        style={{
+                                            fontSize: "0.8125rem",
+                                            color: "var(--warning)",
+                                            background: "rgba(245, 158, 11, 0.12)",
+                                            border: "1px solid rgba(245, 158, 11, 0.22)",
+                                            borderRadius: "var(--radius-sm)",
+                                            padding: "var(--space-2) var(--space-3)",
+                                        }}
+                                    >
+                                        {w}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {/* Research Highlights */}
                 <div style={{ marginBottom: "var(--space-6)" }}>
                     <h4 style={{ marginBottom: "var(--space-3)", color: "var(--text-secondary)" }}>
@@ -111,6 +189,37 @@ export function CAMPreview({ report }: CAMPreviewProps) {
                             </span>
                         )}
                     </div>
+
+                    {report.research.connector_status && (
+                        <div style={{ marginTop: "var(--space-3)", fontSize: "0.8125rem", color: "var(--text-muted)" }}>
+                            Live Connector: {report.research.connector_status.provider || "Unknown"} | Sources: {report.research.connector_status.sources_count ?? 0}
+                        </div>
+                    )}
+
+                    {(report.research.research_sources || []).length > 0 && (
+                        <div style={{ marginTop: "var(--space-3)", display: "grid", gap: "var(--space-2)" }}>
+                            {(report.research.research_sources || []).slice(0, 5).map((src, idx) => (
+                                <a
+                                    key={`${src.url}-${idx}`}
+                                    href={src.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    style={{
+                                        display: "block",
+                                        padding: "var(--space-2) var(--space-3)",
+                                        border: "1px solid var(--border)",
+                                        borderRadius: "var(--radius-sm)",
+                                        textDecoration: "none",
+                                        color: "var(--text-secondary)",
+                                        fontSize: "0.8125rem",
+                                    }}
+                                >
+                                    <strong style={{ color: "var(--text-primary)" }}>{src.title}</strong>
+                                    <div>{src.category || "web"} • {src.published_at || "date unknown"}</div>
+                                </a>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* 5Cs Breakdown Table */}

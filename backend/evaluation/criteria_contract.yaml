@@ -1,0 +1,47 @@
+version: 1
+owner: product-and-engineering
+created_at: 2026-03-15
+
+criteria:
+  extraction_accuracy:
+    description: Objective extraction quality on scanned and native documents.
+    thresholds:
+      field_f1_min: 0.95
+      numeric_tolerance_pass_rate_min: 0.95
+      ocr_cer_max: 0.08
+      hallucination_rate_max: 0.03
+
+  research_depth:
+    description: Coverage and quality of external evidence retrieval.
+    thresholds:
+      required_channels:
+        - news
+        - regulatory
+        - litigation
+        - mca
+        - generic
+      min_sources_per_run: 5
+      max_stale_days: 365
+
+  explainability:
+    description: Decision traceability from signals to recommendation.
+    thresholds:
+      requires_decision_trace: true
+      requires_feature_contributions: true
+      requires_source_citations: true
+
+  indian_context_sensitivity:
+    description: India-specific compliance and credit context handling.
+    thresholds:
+      requires_gstr_2a_3b_reconciliation: true
+      requires_cibil_commercial_signal: true
+      requires_indian_number_normalization: true
+
+reporting:
+  required_outputs:
+    - summary.json
+    - by_criterion.json
+    - by_doc_type.json
+    - ocr_quality_report.json
+    - failures.csv
+  fail_on_missing_outputs: true

@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "paddleocr": {
+      "command": "paddleocr_mcp",
+      "args": [],
+      "env": {
+        "PADDLEOCR_MCP_PIPELINE": "PaddleOCR-VL",
+        "PADDLEOCR_MCP_PPOCR_SOURCE": "qianfan",
+        "PADDLEOCR_MCP_SERVER_URL": "https://qianfan.baidubce.com/v2/ocr",
+        "PADDLEOCR_MCP_QIANFAN_API_KEY": "<your-api-key>"
+      }
+    }
+  }
+}

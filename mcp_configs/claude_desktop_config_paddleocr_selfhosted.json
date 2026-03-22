@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "paddleocr": {
+      "command": "paddleocr_mcp",
+      "args": [],
+      "env": {
+        "PADDLEOCR_MCP_PIPELINE": "OCR",
+        "PADDLEOCR_MCP_PPOCR_SOURCE": "self_hosted",
+        "PADDLEOCR_MCP_SERVER_URL": "<your-server-url>"
+      }
+    }
+  }
+}

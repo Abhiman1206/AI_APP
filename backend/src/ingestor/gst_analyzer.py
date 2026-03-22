@@ -19,7 +19,7 @@ def analyze_gst(pdf_text: str, gst_number: str | None = None) -> dict:
             "entity_name": None,
             "status": "Unknown",
             "compliance_rating": None,
-            "error": str(e),
+            "error": "GST data extraction failed or document not provided",
             "last_12_months": {},
             "turnover_trend": [],
         }

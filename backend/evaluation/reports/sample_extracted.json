@@ -1,0 +1,32 @@
+{
+  "seed-bank-001": {
+    "payload": {
+      "account_holder": "ABC Industries Pvt Ltd",
+      "summary": {
+        "avg_monthly_credits": 3400000
+      }
+    },
+    "ocr_hypothesis": "Bank statement sample hypothesis text"
+  },
+  "seed-gst-001": {
+    "payload": {
+      "gst_number": "27ABCDE1234F1Z5",
+      "last_12_months": {
+        "total_turnover": 11800000,
+        "filings_on_time": 10
+      }
+    },
+    "ocr_hypothesis": "GST return sample hypothesis text"
+  },
+  "seed-fin-001": {
+    "payload": {
+      "financial_highlights": {
+        "revenue": 252000000,
+        "net_profit": 29000000,
+        "current_ratio": 1.39
+      },
+      "extra_field": "unexpected"
+    },
+    "ocr_hypothesis": "Financial statement sample hypothesis text"
+  }
+}

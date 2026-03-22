@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "docling": {
+      "command": "uvx",
+      "args": [
+        "--from=docling-mcp",
+        "docling-mcp-server"
+      ]
+    },
+    "paddleocr": {
+      "command": "paddleocr_mcp",
+      "args": [],
+      "env": {
+        "PADDLEOCR_MCP_PIPELINE": "OCR",
+        "PADDLEOCR_MCP_PPOCR_SOURCE": "aistudio",
+        "PADDLEOCR_MCP_SERVER_URL": "<your-server-url>",
+        "PADDLEOCR_MCP_AISTUDIO_ACCESS_TOKEN": "<your-access-token>"
+      }
+    }
+  }
+}

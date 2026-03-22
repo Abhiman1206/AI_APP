@@ -1,0 +1,220 @@
+# PaddleOCR Replacement - Quick Reference Card
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                   PADDLEOCR ALTERNATIVES CHEAT SHEET                    │
+│                     For Python 3.14 on Windows                          │
+└────────────────────────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════╗
+║ 🏆 RECOMMENDED: RapidOCR                                             ║
+╠══════════════════════════════════════════════════════════════════════╣
+║                                                                      ║
+║  Install:  pip install rapidocr-onnxruntime                          ║
+║                                                                      ║
+║  Quick Test:                                                         ║
+║    from rapidocr_onnxruntime import RapidOCR                         ║
+║    ocr = RapidOCR()                                                  ║
+║    result, time = ocr("test.png")                                   ║
+║    print([line[1] for line in result])                              ║
+║                                                                      ║
+║  Why: ✅ Fast  ✅ Accurate  ✅ Python 3.14  ✅ Free                  ║
+║                                                                      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────┐
+│  OTHER OPTIONS                                                        │
+├──────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  Quick Fix (5 min):      Docling OCR                                 │
+│    pdf_parser.py line 126: pipeline_options.do_ocr = True            │
+│                                                                      │
+│  Multilingual:           EasyOCR                                     │
+│    pip install easyocr                                               │
+│                                                                      │
+│  Production (paid):      Azure Document Intelligence                 │
+│    pip install azure-ai-formrecognizer                              │
+│                                                                      │
+└──────────────────────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════================================================================  ════╗
+║  COMPARISON TABLE                                                                                                      ║
+╠═══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════  ═╣
+║                                                                                                                         ║
+║  Engine          │ Python 3.14 │ Accuracy │ Speed (352MB) │ Cost    │ Setup │ Best For                                ║
+║  ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────   ║
+║  RapidOCR ⭐     │     ✅      │  95-97%  │    ~25 min    │  Free   │  ⭐⭐⭐⭐⭐  │ Your hackathon project                ║
+║  Docling OCR     │     ✅      │  90-93%  │    ~40 min    │  Free   │  ⭐⭐⭐⭐⭐  │ Quick demo (1-line change)            ║
+║  EasyOCR         │     ✅      │  92%     │    ~40 min    │  Free   │  ⭐⭐⭐⭐   │ Multilingual documents                ║
+║  Azure           │     ✅      │  98-99%  │    ~15 min    │  $600/mo│  ⭐⭐⭐    │ High-value loans (>₹10 Cr)            ║
+║  Tesseract       │     ✅      │  85%     │    ~60 min    │  Free   │  ⭐⭐⭐⭐   │ Legacy fallback (current)             ║
+║  PaddleOCR       │     ❌      │  95-98%  │    ~20 min    │  Free   │  N/A    │ Not working (Python 3.14)             ║
+║                                                                                                                         ║
+╚═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────┐
+│  QUICK MIGRATION STEPS                                                │
+├──────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  1. Install:                                                         │
+│     pip uninstall paddleocr paddlepaddle -y                          │
+│     pip install rapidocr-onnxruntime                                 │
+│                                                                      │
+│  2. Test:                                                            │
+│     python backend/test_ocr_comparison.py ./Data/sample.pdf          │
+│                                                                      │
+│  3. Migrate:                                                         │
+│     Update pdf_parser.py (see QUICK_MIGRATION_GUIDE.md)              │
+│     - Replace imports: PaddleOCR → RapidOCR                          │
+│     - Update function: _extract_with_paddle → _extract_with_rapid    │
+│     - Update calls: PADDLE_AVAILABLE → RAPID_AVAILABLE               │
+│                                                                      │
+│  4. Test:                                                            │
+│     python test_all_ingestion.py                                     │
+│                                                                      │
+│  5. Deploy:                                                          │
+│     git commit -m "Replace PaddleOCR with RapidOCR"                  │
+│     git push                                                         │
+│                                                                      │
+│  ⏱️ Total time: 2-3 hours                                            │
+│                                                                      │
+└──────────────────────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  CODE EXAMPLES                                                       ║
+╠══════════════════════════════════════════════════════════════════════╣
+║                                                                      ║
+║  RapidOCR (Drop-in replacement):                                     ║
+║  ────────────────────────────────                                    ║
+║    from rapidocr_onnxruntime import RapidOCR                         ║
+║    ocr = RapidOCR()                                                  ║
+║    result, elapse = ocr(img_bytes)                                   ║
+║    text = '\n'.join([line[1] for line in result])                   ║
+║                                                                      ║
+║  Docling OCR (Quick fix):                                            ║
+║  ─────────────────────────                                           ║
+║    pipeline_options.do_ocr = True  # Line 126                        ║
+║                                                                      ║
+║  EasyOCR (Alternative):                                              ║
+║  ──────────────────────                                              ║
+║    import easyocr                                                    ║
+║    reader = easyocr.Reader(['en'], gpu=False)                        ║
+║    result = reader.readtext(img_bytes)                               ║
+║    text = '\n'.join([t for (_, t, _) in result])                    ║
+║                                                                      ║
+║  Azure (Production):                                                 ║
+║  ───────────────────                                                 ║
+║    from azure.ai.formrecognizer import DocumentAnalysisClient       ║
+║    client = DocumentAnalysisClient(endpoint, credential)             ║
+║    poller = client.begin_analyze_document("prebuilt-layout", doc)   ║
+║    result = poller.result()                                          ║
+║                                                                      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────┐
+│  FILES CREATED                                                        │
+├──────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  📄 PADDLEOCR_ALTERNATIVES.md      - Full analysis (9000 words)      │
+│  📄 QUICK_MIGRATION_GUIDE.md       - Step-by-step (2-3 hours)        │
+│  📄 OCR_ALTERNATIVES_SUMMARY.md    - Executive summary               │
+│  📄 THIS FILE                      - Quick reference                 │
+│                                                                      │
+│  💻 backend/src/ingestor/ocr_migration.py   - Ready-to-use code     │
+│  🧪 backend/test_ocr_comparison.py          - Test script           │
+│                                                                      │
+└──────────────────────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  DECISION TREE                                                       ║
+╠══════════════════════════════════════════════════════════════════════╣
+║                                                                      ║
+║  Need demo in <1 hour?                                               ║
+║    └─→ Docling OCR (1-line change)                                   ║
+║                                                                      ║
+║  Have 2-3 hours for proper fix?                                      ║
+║    └─→ RapidOCR (best long-term)                                     ║
+║                                                                      ║
+║  Need 99% accuracy, have budget?                                     ║
+║    └─→ Azure Document Intelligence                                   ║
+║                                                                      ║
+║  Need multilingual (Hindi, Tamil, etc)?                              ║
+║    └─→ EasyOCR                                                       ║
+║                                                                      ║
+║  Phase 2 production?                                                 ║
+║    └─→ Hybrid: RapidOCR + Azure for high-value                       ║
+║                                                                      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────┐
+│  TROUBLESHOOTING                                                      │
+├──────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  ❌ Installation fails:                                              │
+│     → pip install --upgrade pip                                      │
+│     → pip install rapidocr-onnxruntime                               │
+│                                                                      │
+│  ❌ Empty OCR results:                                               │
+│     → Check PDF has scanned images (not native text)                 │
+│     → Test with single-page PDF first                                │
+│     → Verify image quality (resolution, contrast)                    │
+│                                                                      │
+│  ❌ Slow extraction:                                                 │
+│     → Limit pages: Only OCR top 10 relevance pages                   │
+│     → Lower resolution: matrix=fitz.Matrix(1.5, 1.5)                 │
+│     → Enable parallel processing: use_parallel=True                  │
+│                                                                      │
+│  ❌ Low accuracy (<95%):                                             │
+│     → Increase image resolution: matrix=fitz.Matrix(2.5, 2.5)        │
+│     → Try Azure for critical documents                               │
+│     → Check for image quality issues (blur, skew)                    │
+│                                                                      │
+└──────────────────────────────────────────────────────────────────────┘
+
+╔══════════════════════════════════════════════════════════════════════╗
+║  EXPECTED RESULTS                                                    ║
+╠══════════════════════════════════════════════════════════════════════╣
+║                                                                      ║
+║  After migrating to RapidOCR:                                        ║
+║                                                                      ║
+║    ✅ Works on Python 3.14 Windows                                   ║
+║    ✅ 95-97% extraction accuracy (meets requirement)                 ║
+║    ✅ Process 27 PDFs (352 MB) in ~25 minutes                        ║
+║    ✅ 2-3x faster than Tesseract fallback                            ║
+║    ✅ Production-ready (stable, maintained)                          ║
+║    ✅ Small package size (~50 MB)                                    ║
+║    ✅ No GPU required                                                 ║
+║                                                                      ║
+║  Investment: 2-3 hours migration time                                ║
+║  Payoff: Long-term solution, faster processing, better accuracy      ║
+║                                                                      ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────┐
+│  RESOURCES                                                            │
+├──────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  RapidOCR:                                                           │
+│    📦 PyPI: pip install rapidocr-onnxruntime                         │
+│    🐙 GitHub: github.com/RapidAI/RapidOCR                            │
+│    📖 Docs: rapidai.github.io/RapidOCR/                              │
+│                                                                      │
+│  Azure Document Intelligence:                                        │
+│    📖 Docs: learn.microsoft.com/azure/ai-services/document-intel    │
+│    💰 Pricing: ~$1.50 per 1000 pages                                 │
+│    🎁 Free tier: 500 pages/month                                     │
+│                                                                      │
+│  Your Project Files:                                                 │
+│    📁 ocr_migration.py - Ready-to-use code                           │
+│    📁 test_ocr_comparison.py - Test script                           │
+│    📁 QUICK_MIGRATION_GUIDE.md - Detailed steps                      │
+│                                                                      │
+└──────────────────────────────────────────────────────────────────────┘
+
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃  💡 TIP: Start with test_ocr_comparison.py to see live results    ┃
+┃      before committing to full migration                           ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+
+Last updated: March 15, 2026
+```

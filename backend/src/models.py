@@ -46,6 +46,8 @@ class ResearchResult(BaseModel):
     litigation_flags: list[str] = []
     news_sentiment: Optional[str] = None
     risk_timeline: list[RiskTimelineEntry] = []
+    research_sources: list[dict] = []
+    connector_status: Optional[dict] = None
 
 
 class CAMReport(BaseModel):
@@ -60,8 +62,14 @@ class CAMReport(BaseModel):
     summary_text: str = ""
     site_visit_notes: Optional[str] = None
     risk_flags: list[str] = []
+    pricing_rationale: Optional[dict] = None
+    ml_recommendation: Optional[dict] = None
+    anomaly_detection: Optional[dict] = None
+    explainability: Optional[dict] = None
+    validation_checks: Optional[dict] = None
 
 
 class PipelineResponse(BaseModel):
     status: str = "success"
     cam_report: CAMReport
+    ingestion_metadata: Optional[dict] = None

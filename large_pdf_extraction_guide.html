@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Large PDF Extraction – Intelli-Credit Pipeline</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap');
+
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2236;
+    --border: #1f2d45;
+    --accent: #00d4ff;
+    --accent2: #ff6b35;
+    --accent3: #22c55e;
+    --accent4: #a78bfa;
+    --warn: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    padding: 40px 20px 80px;
+  }
+
+  .container { max-width: 1080px; margin: 0 auto; }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    padding: 60px 20px 50px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 60px;
+  }
+  .header .badge {
+    display: inline-block;
+    background: rgba(0,212,255,0.1);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    padding: 5px 16px;
+    border-radius: 2px;
+    margin-bottom: 20px;
+  }
+  .header h1 {
+    font-size: 38px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 14px;
+  }
+  .header h1 span { color: var(--accent); }
+  .header p { color: var(--muted); max-width: 600px; margin: 0 auto; font-size: 16px; }
+
+  /* ── Section titles ── */
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    margin-top: 60px;
+  }
+  .section-title .num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.25);
+    padding: 3px 10px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+  .section-title h2 {
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .section-title h2 span { color: var(--accent); }
+
+  /* ── Pipeline flow ── */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 60px;
+    position: relative;
+  }
+  .pipeline::before {
+    content: '';
+    position: absolute;
+    left: 30px;
+    top: 50px;
+    bottom: 50px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--accent), var(--accent4), var(--accent3));
+    opacity: 0.3;
+  }
+
+  .pipe-step {
+    display: flex;
+    gap: 24px;
+    padding: 24px 28px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    position: relative;
+    transition: border-color 0.2s;
+  }
+  .pipe-step:hover { border-color: var(--accent); }
+
+  .pipe-step .step-icon {
+    font-size: 28px;
+    min-width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface2);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .pipe-step .step-body { flex: 1; }
+  .pipe-step .step-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .pipe-step .step-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .pipe-step .step-desc { color: var(--muted); font-size: 14px; }
+
+  .pipe-step .step-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 3px;
+    border: 1px solid;
+  }
+  .tag.blue  { color: var(--accent);  border-color: rgba(0,212,255,0.3);  background: rgba(0,212,255,0.05); }
+  .tag.orange{ color: var(--accent2); border-color: rgba(255,107,53,0.3); background: rgba(255,107,53,0.05); }
+  .tag.green { color: var(--accent3); border-color: rgba(34,197,94,0.3);  background: rgba(34,197,94,0.05); }
+  .tag.purple{ color: var(--accent4); border-color: rgba(167,139,250,0.3);background: rgba(167,139,250,0.05);}
+  .tag.yellow{ color: var(--warn);    border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.05);}
+
+  /* ── Decision tree / routing ── */
+  .router {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+  .router h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .router h3::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 18px;
+    background: var(--accent2);
+    border-radius: 2px;
+  }
+
+  .route-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .route-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .route-card .rc-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .route-card .rc-type {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .route-card .rc-tool {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .route-card .rc-desc { font-size: 12px; color: var(--muted); }
+
+  /* ── Chunking strategies ── */
+  .strategy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .strategy-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .strategy-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .strategy-card.s1::before { background: var(--accent); }
+  .strategy-card.s2::before { background: var(--accent2); }
+  .strategy-card.s3::before { background: var(--accent3); }
+  .strategy-card.s4::before { background: var(--accent4); }
+
+  .strategy-card .sc-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .strategy-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .strategy-card p  { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+  .strategy-card .sc-verdict {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 3px;
+  }
+  .verdict-best   { background: rgba(34,197,94,0.15);  color: var(--accent3); }
+  .verdict-good   { background: rgba(0,212,255,0.1);   color: var(--accent); }
+  .verdict-avoid  { background: rgba(245,158,11,0.1);  color: var(--warn); }
+
+  /* ── Tool comparison table ── */
+  .tool-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 40px;
+    font-size: 13px;
+  }
+  .tool-table th {
+    text-align: left;
+    padding: 12px 16px;
+    background: var(--surface2);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 1px;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+  }
+  .tool-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .tool-table tr:hover td { background: var(--surface); }
+  .tool-table .tool-name { font-weight: 700; color: var(--text); }
+  .tool-table .dot-yes  { color: var(--accent3); font-weight: 700; }
+  .tool-table .dot-no   { color: var(--muted); }
+  .tool-table .dot-part { color: var(--warn); }
+  .tool-table .rec-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    background: rgba(0,212,255,0.1);
+    color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.25);
+  }
+
+  /* ── Code block ── */
+  .code-block {
+    background: #060a14;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.8;
+    overflow-x: auto;
+    margin: 16px 0;
+  }
+  .code-block .cm { color: #4a5568; }
+  .code-block .ck { color: var(--accent4); }
+  .code-block .cs { color: var(--accent3); }
+  .code-block .cn { color: var(--accent); }
+  .code-block .cv { color: var(--accent2); }
+
+  /* ── Callout boxes ── */
+  .callout {
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 20px 0;
+    border-left: 3px solid;
+    font-size: 14px;
+  }
+  .callout.info  { background: rgba(0,212,255,0.05);  border-color: var(--accent);  }
+  .callout.warn  { background: rgba(245,158,11,0.05); border-color: var(--warn);   }
+  .callout.tip   { background: rgba(34,197,94,0.05);  border-color: var(--accent3); }
+  .callout strong { display: block; margin-bottom: 4px; font-size: 13px; letter-spacing: 0.5px; }
+  .callout.info  strong { color: var(--accent); }
+  .callout.warn  strong { color: var(--warn); }
+  .callout.tip   strong { color: var(--accent3); }
+
+  /* ── Architecture diagram ── */
+  .arch-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 32px;
+    margin: 24px 0;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 2;
+    overflow-x: auto;
+  }
+  .arch-row { display: flex; align-items: center; gap: 8px; margin: 2px 0; }
+  .arch-box {
+    padding: 4px 14px;
+    border-radius: 4px;
+    white-space: nowrap;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .ab-blue   { background: rgba(0,212,255,0.12);  color: var(--accent);  border: 1px solid rgba(0,212,255,0.3); }
+  .ab-orange { background: rgba(255,107,53,0.12); color: var(--accent2); border: 1px solid rgba(255,107,53,0.3);}
+  .ab-green  { background: rgba(34,197,94,0.12);  color: var(--accent3); border: 1px solid rgba(34,197,94,0.3); }
+  .ab-purple { background: rgba(167,139,250,0.12);color: var(--accent4); border: 1px solid rgba(167,139,250,0.3);}
+  .ab-yellow { background: rgba(245,158,11,0.12); color: var(--warn);    border: 1px solid rgba(245,158,11,0.3);}
+  .arch-arrow { color: var(--muted); font-size: 16px; }
+
+  /* ── Summary checklist ── */
+  .checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 20px 0;
+  }
+  .cl-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 14px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+  .cl-icon { font-size: 18px; min-width: 24px; }
+  .cl-text { flex: 1; }
+  .cl-text strong { display: block; margin-bottom: 2px; }
+  .cl-text span { color: var(--muted); font-size: 13px; }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 80px;
+    padding-top: 30px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="badge">INTELLI-CREDIT · DATA INGESTION</div>
+    <h1>Extracting <span>Large PDFs</span><br>300–400 Pages</h1>
+    <p>A complete procedure guide for your Intelli-Credit data ingestion pipeline — covering page routing, chunking strategy, tools, and production architecture.</p>
+  </div>
+
+  <!-- SECTION 1: THE PROBLEM -->
+  <div class="section-title">
+    <span class="num">01</span>
+    <h2>Why Large PDFs Are <span>Hard</span></h2>
+  </div>
+
+  <div class="route-grid" style="margin-bottom:40px">
+    <div class="route-card">
+      <div class="rc-label">Problem 1</div>
+      <div class="rc-type">Multi-column Layouts</div>
+      <div class="rc-desc">Financial tables span 2–3 columns. Simple text extraction reads column 1 entirely before column 2, destroying table structure.</div>
+    </div>
+    <div class="route-card">
+      <div class="rc-label">Problem 2</div>
+      <div class="rc-type">Mixed Content Types</div>
+      <div class="rc-desc">Page 1 = text narrative. Page 45 = scanned image. Page 201 = dense financial table. No single tool handles all three well.</div>
+    </div>
+    <div class="route-card">
+      <div class="rc-label">Problem 3</div>
+      <div class="rc-type">Context Window Limits</div>
+      <div class="rc-desc">350 pages ≈ 200,000+ tokens. LLMs can't ingest this at once. Naive truncation loses critical financial data.</div>
+    </div>
+    <div class="route-card">
+      <div class="rc-label">Problem 4</div>
+      <div class="rc-type">Silent Failures</div>
+      <div class="rc-desc">Incorrect numeric extraction — e.g. ₹1,92,000 read as ₹192,000 — fails silently. Wrong CAM = wrong credit decision.</div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: THE PIPELINE -->
+  <div class="section-title">
+    <span class="num">02</span>
+    <h2>The 6-Stage <span>Extraction Pipeline</span></h2>
+  </div>
+
+  <div class="pipeline">
+
+    <div class="pipe-step">
+      <div class="step-icon">📥</div>
+      <div class="step-body">
+        <div class="step-label">Stage 1</div>
+        <div class="step-title">Ingest & Pre-flight Check</div>
+        <div class="step-desc">Before any extraction, scan the PDF to detect its type: is it text-native, scanned/image-based, or hybrid? Also detect total pages, language, and presence of text layer.</div>
+        <div class="step-tags">
+          <span class="tag blue">pypdf metadata</span>
+          <span class="tag blue">pdfplumber.open()</span>
+          <span class="tag green">~0.5s per PDF</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipe-step">
+      <div class="step-icon">🗺️</div>
+      <div class="step-body">
+        <div class="step-label">Stage 2</div>
+        <div class="step-title">Intelligent Page Router</div>
+        <div class="step-desc">Classify each page (or sampled pages) into: plain text, multi-column text, financial table, chart/image, or scanned image. Route each to the right extractor. Don't send everything to one tool.</div>
+        <div class="step-tags">
+          <span class="tag orange">PyMuPDF → plain text pages</span>
+          <span class="tag orange">pdfplumber → table pages</span>
+          <span class="tag orange">Docling → complex layout pages</span>
+          <span class="tag orange">PaddleOCR → scanned pages</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipe-step">
+      <div class="step-icon">✂️</div>
+      <div class="step-body">
+        <div class="step-label">Stage 3</div>
+        <div class="step-title">Section Detection & Chunking</div>
+        <div class="step-desc">Use TOC (Table of Contents) or heading detection to divide the PDF into logical sections BEFORE chunking. For annual reports: Company Overview → Director's Report → Financial Statements → Notes to Accounts. Chunk within sections, not across them.</div>
+        <div class="step-tags">
+          <span class="tag purple">page-level chunks → best for finance</span>
+          <span class="tag purple">~800–2000 tokens per chunk</span>
+          <span class="tag purple">100-token overlap between chunks</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipe-step">
+      <div class="step-icon">🧠</div>
+      <div class="step-body">
+        <div class="step-label">Stage 4</div>
+        <div class="step-title">Targeted Extraction (Priority Pages)</div>
+        <div class="step-desc">For the CAM, you don't need all 350 pages. Locate the ~30 high-value pages (Balance Sheet, P&L, Cash Flow, MD&A, Auditor's Report, Notes) and apply deep extraction only to those. Scan rest for qualitative signals.</div>
+        <div class="step-tags">
+          <span class="tag yellow">~8% of pages = 80% of credit value</span>
+          <span class="tag green">Deep parse: 30 pages</span>
+          <span class="tag green">Keyword scan: 320 pages</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipe-step">
+      <div class="step-icon">✅</div>
+      <div class="step-body">
+        <div class="step-label">Stage 5</div>
+        <div class="step-title">LLM Validation (Double-Check)</div>
+        <div class="step-desc">Send extracted financial figures to Claude API for cross-verification. Ask: "Does Total Assets = Total Liabilities + Equity?" and "Is PAT consistent across Balance Sheet and P&L?" LLM catches silent extraction errors before they reach your CAM.</div>
+        <div class="step-tags">
+          <span class="tag blue">Claude Sonnet 4.6 API</span>
+          <span class="tag blue">accounting identity checks</span>
+          <span class="tag blue">LLMChallenge pattern</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipe-step">
+      <div class="step-icon">💾</div>
+      <div class="step-body">
+        <div class="step-label">Stage 6</div>
+        <div class="step-title">Structured Output + Vector Store</div>
+        <div class="step-desc">Write verified data to JSON (structured financials) + embed text chunks into a vector DB (FAISS/Pinecone) for RAG queries. This lets the Research Agent query "litigation mentions" or "promoter risk" across all ingested documents.</div>
+        <div class="step-tags">
+          <span class="tag purple">JSON → financial facts</span>
+          <span class="tag purple">FAISS → qualitative RAG</span>
+          <span class="tag green">ready for CAM generator</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SECTION 3: PAGE ROUTER DETAIL -->
+  <div class="section-title">
+    <span class="num">03</span>
+    <h2>Intelligent <span>Page Router</span> — Which Tool for Which Page?</h2>
+  </div>
+
+  <div class="router">
+    <h3>Routing Decision Logic</h3>
+    <div class="route-grid">
+      <div class="route-card">
+        <div class="rc-label">Page Type</div>
+        <div class="rc-type" style="color:var(--accent)">Plain Text Narrative</div>
+        <div class="rc-tool">→ PyMuPDF / pdfplumber</div>
+        <div class="rc-desc">MD&A, Director's Report, Chairman's Message. Fast (~40ms/page). Handles single-column well.</div>
+      </div>
+      <div class="route-card">
+        <div class="rc-label">Page Type</div>
+        <div class="rc-type" style="color:var(--accent2)">Financial Table</div>
+        <div class="rc-tool">→ pdfplumber + Docling</div>
+        <div class="rc-desc">Balance Sheet, P&L, Cash Flow, Notes. Needs row-column relationship preservation. Docling: 97.9% table accuracy.</div>
+      </div>
+      <div class="route-card">
+        <div class="rc-label">Page Type</div>
+        <div class="rc-type" style="color:var(--accent3)">Multi-column Layout</div>
+        <div class="rc-tool">→ Docling MCP</div>
+        <div class="rc-desc">Two-column financial statements (like Vivriti's page 201). Layout-aware AI prevents column bleed.</div>
+      </div>
+      <div class="route-card">
+        <div class="rc-label">Page Type</div>
+        <div class="rc-type" style="color:var(--accent4)">Scanned / Image PDF</div>
+        <div class="rc-tool">→ PaddleOCR MCP</div>
+        <div class="rc-desc">Older Indian annual reports often have scanned pages. PaddleOCR supports 100+ languages including Hindi text in tables.</div>
+      </div>
+      <div class="route-card">
+        <div class="rc-label">Page Type</div>
+        <div class="rc-type" style="color:var(--warn)">Charts / Graphs</div>
+        <div class="rc-tool">→ Skip or Vision LLM</div>
+        <div class="rc-desc">Pie charts, bar graphs. Skip for structured extraction. If needed, pass as image to Claude vision for description.</div>
+      </div>
+      <div class="route-card">
+        <div class="rc-label">Page Type</div>
+        <div class="rc-type" style="color:var(--muted)">Filler Pages</div>
+        <div class="rc-tool">→ Skip entirely</div>
+        <div class="rc-desc">Cover pages, photo spreads, CSR imagery, blank pages. Detect by low text density (&lt;50 chars) and skip.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page classification code -->
+  <div class="code-block">
+<span class="ck">def</span> <span class="cn">classify_page</span>(page) <span class="ck">→</span> str:
+    <span class="cm"># Quick heuristic classifier — runs per page</span>
+    text    = page.extract_text() <span class="ck">or</span> <span class="cs">""</span>
+    tables  = page.extract_tables()
+    chars   = len(text.strip())
+
+    <span class="ck">if</span> chars < 50:
+        <span class="ck">return</span> <span class="cs">"filler"</span>            <span class="cm"># skip</span>
+
+    <span class="ck">if</span> len(tables) > 0 <span class="ck">and</span> chars > 200:
+        <span class="ck">return</span> <span class="cs">"financial_table"</span>   <span class="cm"># → Docling</span>
+
+    <span class="ck">if</span> <span class="cv">any</span>(kw <span class="ck">in</span> text <span class="ck">for</span> kw <span class="ck">in</span> [<span class="cs">"Balance Sheet"</span>, <span class="cs">"Profit and Loss"</span>, <span class="cs">"Cash Flow"</span>]):
+        <span class="ck">return</span> <span class="cs">"priority_financial"</span> <span class="cm"># → deep extraction</span>
+
+    <span class="ck">if</span> chars > 500:
+        <span class="ck">return</span> <span class="cs">"narrative_text"</span>     <span class="cm"># → PyMuPDF fast path</span>
+
+    <span class="ck">return</span> <span class="cs">"scan_candidate"</span>     <span class="cm"># → PaddleOCR</span>
+  </div>
+
+  <!-- SECTION 4: CHUNKING STRATEGY -->
+  <div class="section-title">
+    <span class="num">04</span>
+    <h2>Chunking <span>Strategy</span> for Financial PDFs</h2>
+  </div>
+
+  <div class="callout info">
+    <strong>🔬 Research Finding (NVIDIA, 2025)</strong>
+    Page-level chunking achieved the highest average accuracy (0.648) across all financial datasets — outperforming both token-based and section-level chunking. For annual reports: use page-level as your default.
+  </div>
+
+  <div class="strategy-grid">
+    <div class="strategy-card s1">
+      <div class="sc-badge">STRATEGY 1 · RECOMMENDED</div>
+      <h3>Page-Level Chunking</h3>
+      <p>Each PDF page = one chunk. Works best for financial reports because financial statements are page-bounded. Preserves tables intact.</p>
+      <span class="sc-verdict verdict-best">✅ Best for CAM</span>
+    </div>
+    <div class="strategy-card s2">
+      <div class="sc-badge">STRATEGY 2 · GOOD FOR MD&A</div>
+      <h3>Section-Level Chunking</h3>
+      <p>Use TOC to split at section boundaries. "Financial Statements" = one chunk. "Director's Report" = another. Great for qualitative RAG.</p>
+      <span class="sc-verdict verdict-good">👍 Good for qualitative</span>
+    </div>
+    <div class="strategy-card s3">
+      <div class="sc-badge">STRATEGY 3 · HYBRID</div>
+      <h3>~2000 Tokens + Overlap</h3>
+      <p>Split at 2000 tokens with 100-token overlap. Never split mid-sentence. Use for Notes to Accounts which span multiple pages.</p>
+      <span class="sc-verdict verdict-good">👍 Good for notes</span>
+    </div>
+    <div class="strategy-card s4">
+      <div class="sc-badge">STRATEGY 4 · AVOID</div>
+      <h3>Fixed-Size Token Splitting</h3>
+      <p>Splits blindly at N tokens regardless of content. Cuts financial tables in half. Destroys accounting relationships. Never use for structured financial data.</p>
+      <span class="sc-verdict verdict-avoid">⚠️ Avoid for finance</span>
+    </div>
+  </div>
+
+  <div class="callout tip">
+    <strong>💡 Intelli-Credit Recommendation</strong>
+    Use a <strong>two-pass approach</strong>: Pass 1 = page-level extraction for structured financial data (BS, P&L, Cash Flow). Pass 2 = section-level chunking for qualitative text (MD&A, Risk Factors, Litigation) stored in a vector DB for RAG queries.
+  </div>
+
+  <!-- SECTION 5: TOOL COMPARISON -->
+  <div class="section-title">
+    <span class="num">05</span>
+    <h2>Tool <span>Comparison</span> — Which to Use When</h2>
+  </div>
+
+  <table class="tool-table">
+    <thead>
+      <tr>
+        <th>TOOL</th>
+        <th>SCANNED PDF</th>
+        <th>TABLES</th>
+        <th>MULTI-COL</th>
+        <th>SPEED</th>
+        <th>INDIAN CONTEXT</th>
+        <th>USE FOR</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="tool-name">pdfplumber</span><br><span style="color:var(--muted);font-size:12px">Current pipeline</span></td>
+        <td><span class="dot-no">✗</span></td>
+        <td><span class="dot-part">~</span></td>
+        <td><span class="dot-no">✗</span></td>
+        <td><span class="dot-yes">Fast</span></td>
+        <td><span class="dot-no">✗</span></td>
+        <td>Simple text pages</td>
+      </tr>
+      <tr>
+        <td><span class="tool-name">PyMuPDF</span><br><span style="color:var(--muted);font-size:12px">pymupdf4llm</span></td>
+        <td><span class="dot-no">✗</span></td>
+        <td><span class="dot-part">~</span></td>
+        <td><span class="dot-part">~</span></td>
+        <td><span class="dot-yes">40ms/pg</span></td>
+        <td><span class="dot-part">~</span></td>
+        <td>Narrative text, Markdown export</td>
+      </tr>
+      <tr>
+        <td><span class="tool-name">Docling MCP</span><br><span style="color:var(--muted);font-size:12px">IBM Research</span></td>
+        <td><span class="dot-part">~</span></td>
+        <td><span class="dot-yes">97.9%</span></td>
+        <td><span class="dot-yes">✓</span></td>
+        <td><span class="dot-part">Medium</span></td>
+        <td><span class="dot-yes">XBRL</span></td>
+        <td><span class="rec-badge">⭐ Financial tables</span></td>
+      </tr>
+      <tr>
+        <td><span class="tool-name">PaddleOCR MCP</span><br><span style="color:var(--muted);font-size:12px">Baidu</span></td>
+        <td><span class="dot-yes">✓</span></td>
+        <td><span class="dot-yes">✓</span></td>
+        <td><span class="dot-yes">✓</span></td>
+        <td><span class="dot-part">Slow</span></td>
+        <td><span class="dot-yes">100+ langs</span></td>
+        <td><span class="rec-badge">⭐ Scanned Indian PDFs</span></td>
+      </tr>
+      <tr>
+        <td><span class="tool-name">AWS Textract</span><br><span style="color:var(--muted);font-size:12px">Cloud API</span></td>
+        <td><span class="dot-yes">✓</span></td>
+        <td><span class="dot-yes">✓</span></td>
+        <td><span class="dot-yes">✓</span></td>
+        <td><span class="dot-yes">Fast</span></td>
+        <td><span class="dot-part">~</span></td>
+        <td>Production/cloud-scale, costs $</td>
+      </tr>
+      <tr>
+        <td><span class="tool-name">LlamaParse</span><br><span style="color:var(--muted);font-size:12px">LlamaIndex</span></td>
+        <td><span class="dot-yes">✓</span></td>
+        <td><span class="dot-yes">✓</span></td>
+        <td><span class="dot-yes">✓</span></td>
+        <td><span class="dot-part">Medium</span></td>
+        <td><span class="dot-part">~</span></td>
+        <td>RAG-ready output, LlamaIndex stack</td>
+      </tr>
+      <tr>
+        <td><span class="tool-name">Claude Vision API</span><br><span style="color:var(--muted);font-size:12px">page-as-image</span></td>
+        <td><span class="dot-yes">✓</span></td>
+        <td><span class="dot-yes">✓</span></td>
+        <td><span class="dot-yes">✓</span></td>
+        <td><span class="dot-no">Slowest</span></td>
+        <td><span class="dot-yes">✓</span></td>
+        <td><span class="rec-badge">⭐ Validation pass only</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- SECTION 6: PRODUCTION ARCHITECTURE -->
+  <div class="section-title">
+    <span class="num">06</span>
+    <h2>Production <span>Architecture</span></h2>
+  </div>
+
+  <div class="arch-diagram">
+    <div class="arch-row"><span class="ab-blue">PDF Input (300–400 pages)</span></div>
+    <div class="arch-row"><span style="color:var(--muted);padding-left:20px">↓</span></div>
+
+    <div class="arch-row"><span style="padding-left:20px"></span><span class="ab-orange">Stage 1: Pre-flight (pypdf) → page count, text-layer check, lang detect</span></div>
+    <div class="arch-row"><span style="color:var(--muted);padding-left:20px">↓</span></div>
+
+    <div class="arch-row"><span style="padding-left:20px"></span><span class="ab-orange">Stage 2: Page Classifier → route each page to extractor</span></div>
+    <div class="arch-row" style="padding-left:60px; gap:6px; flex-wrap:wrap; margin:6px 0;">
+      <span class="ab-blue">Plain text → PyMuPDF</span>
+      <span style="color:var(--muted)">|</span>
+      <span class="ab-blue">Tables → Docling</span>
+      <span style="color:var(--muted)">|</span>
+      <span class="ab-blue">Scanned → PaddleOCR</span>
+      <span style="color:var(--muted)">|</span>
+      <span class="ab-blue">Filler → Skip</span>
+    </div>
+    <div class="arch-row"><span style="color:var(--muted);padding-left:20px">↓</span></div>
+
+    <div class="arch-row"><span style="padding-left:20px"></span><span class="ab-yellow">Stage 3: Priority Page Deep-Extract (Balance Sheet, P&L, Cash Flow, Notes)</span></div>
+    <div class="arch-row"><span style="color:var(--muted);padding-left:20px">↓</span></div>
+
+    <div class="arch-row"><span style="padding-left:20px"></span><span class="ab-purple">Stage 4: Chunk remaining pages → section-level for RAG vector store</span></div>
+    <div class="arch-row"><span style="color:var(--muted);padding-left:20px">↓</span></div>
+
+    <div style="display:flex; gap:16px; margin:8px 0; flex-wrap:wrap; padding-left:20px;">
+      <div>
+        <span class="ab-green">Structured JSON</span>
+        <div style="color:var(--muted);font-size:11px;padding:4px 0">BS · P&L · Cash Flow · Ratios</div>
+      </div>
+      <span style="color:var(--muted);display:flex;align-items:center">+</span>
+      <div>
+        <span class="ab-green">Vector DB (FAISS)</span>
+        <div style="color:var(--muted);font-size:11px;padding:4px 0">MD&A · Risk · Litigation chunks</div>
+      </div>
+    </div>
+    <div class="arch-row"><span style="color:var(--muted);padding-left:20px">↓</span></div>
+
+    <div class="arch-row"><span style="padding-left:20px"></span><span class="ab-blue">Stage 5: Claude API Validation → accounting identity checks</span></div>
+    <div class="arch-row"><span style="color:var(--muted);padding-left:20px">↓</span></div>
+
+    <div class="arch-row"><span style="padding-left:20px"></span><span class="ab-green">CAM Engine Input (verified, structured, queryable)</span></div>
+  </div>
+
+  <!-- SECTION 7: PRACTICAL RULES -->
+  <div class="section-title">
+    <span class="num">07</span>
+    <h2>10 Practical <span>Rules</span> for Your Pipeline</h2>
+  </div>
+
+  <div class="checklist">
+    <div class="cl-item">
+      <div class="cl-icon">🗂️</div>
+      <div class="cl-text">
+        <strong>Always use TOC first</strong>
+        <span>Read the Table of Contents (usually pages 2–4) to build a page-range map before any extraction. This is free and saves all subsequent processing.</span>
+      </div>
+    </div>
+    <div class="cl-item">
+      <div class="cl-icon">🎯</div>
+      <div class="cl-text">
+        <strong>Target priority pages, scan the rest</strong>
+        <span>For a 350-page annual report, ~30 pages contain 80% of credit-relevant data. Deep-parse those, keyword-scan the remainder.</span>
+      </div>
+    </div>
+    <div class="cl-item">
+      <div class="cl-icon">🔀</div>
+      <div class="cl-text">
+        <strong>Never use one extractor for everything</strong>
+        <span>PyMuPDF for speed on text pages, Docling for financial tables, PaddleOCR only where there is no text layer. Mixed strategy beats any single tool.</span>
+      </div>
+    </div>
+    <div class="cl-item">
+      <div class="cl-icon">📐</div>
+      <div class="cl-text">
+        <strong>Chunk at page boundaries for finance</strong>
+        <span>Page-level chunking outperforms token-based chunking on financial RAG benchmarks. Don't split a Balance Sheet across chunks.</span>
+      </div>
+    </div>
+    <div class="cl-item">
+      <div class="cl-icon">🔢</div>
+      <div class="cl-text">
+        <strong>Always validate accounting identities</strong>
+        <span>After extraction, verify: Total Assets = Total Liabilities + Equity. PAT on P&L = PAT on Cash Flow. Mismatch = extraction error, not real.</span>
+      </div>
+    </div>
+    <div class="cl-item">
+      <div class="cl-icon">⚠️</div>
+      <div class="cl-text">
+        <strong>Prefer null over wrong</strong>
+        <span>If two verification passes disagree on a number, set it to null. A null in your CAM triggers manual review. A wrong number in your CAM causes bad lending decisions.</span>
+      </div>
+    </div>
+    <div class="cl-item">
+      <div class="cl-icon">📝</div>
+      <div class="cl-text">
+        <strong>Log which extractor processed which page</strong>
+        <span>"Page 201: Docling (multi-column table detected)". This helps debug extraction issues later without re-running everything.</span>
+      </div>
+    </div>
+    <div class="cl-item">
+      <div class="cl-icon">🌐</div>
+      <div class="cl-text">
+        <strong>Convert to Markdown as intermediate format</strong>
+        <span>Markdown preserves headings, tables, and bold text while remaining LLM-friendly. Use it as the canonical intermediate before JSON structuring.</span>
+      </div>
+    </div>
+    <div class="cl-item">
+      <div class="cl-icon">⚡</div>
+      <div class="cl-text">
+        <strong>Cache extracted text, don't re-parse PDFs</strong>
+        <span>Store extracted Markdown/JSON per PDF with its hash as key. If the PDF hasn't changed, serve from cache. Saves 90% of processing time on re-runs.</span>
+      </div>
+    </div>
+    <div class="cl-item">
+      <div class="cl-icon">🇮🇳</div>
+      <div class="cl-text">
+        <strong>Handle Indian number formatting explicitly</strong>
+        <span>Indian reports use lakh/crore notation (₹1,92,456 = ₹1.92 lakh, not 192,456). Parse Indian comma placement separately from Western. Add a normalizer step.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 8: RECOMMENDED UPGRADE PATH -->
+  <div class="section-title">
+    <span class="num">08</span>
+    <h2>Recommended <span>Upgrade Path</span> for Your Pipeline</h2>
+  </div>
+
+  <div class="strategy-grid">
+    <div class="strategy-card s1">
+      <div class="sc-badge">PHASE 1 · NOW (HACKATHON)</div>
+      <h3>pdfplumber + Known-Financials Store</h3>
+      <p>What you have built. Fast to demo. Works for text-native PDFs. Inject verified values for multi-column failures.</p>
+      <span class="sc-verdict verdict-good">Current state ✓</span>
+    </div>
+    <div class="strategy-card s2">
+      <div class="sc-badge">PHASE 2 · NEXT (POST-HACKATHON)</div>
+      <h3>+ Docling MCP + Page Router</h3>
+      <p>Add intelligent page classification and route financial table pages to Docling. Eliminates multi-column extraction failures entirely.</p>
+      <span class="sc-verdict verdict-best">High impact upgrade</span>
+    </div>
+    <div class="strategy-card s3">
+      <div class="sc-badge">PHASE 3 · PRODUCTION</div>
+      <h3>+ Vector DB + Validation LLM</h3>
+      <p>Add FAISS for qualitative RAG, Claude API validation pass, PaddleOCR for scanned PDFs, and Indian number normalizer.</p>
+      <span class="sc-verdict verdict-best">Production-ready</span>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <strong>⚠️ Hackathon Tip</strong>
+    For the demo, prioritize Stage 4 (Priority Page Deep-Extract). Judges care about whether you correctly extracted ₹19,125 Lakhs PAT — not whether your chunking strategy is perfect. Get the numbers right first.
+  </div>
+
+  <div class="footer">
+    INTELLI-CREDIT · DATA INGESTION LAYER · LARGE PDF EXTRACTION GUIDE
+  </div>
+
+</div>
+</body>
+</html>

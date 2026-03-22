@@ -10,14 +10,16 @@ import { downloadCamPdf } from "@/lib/api";
 
 export default function CAMPage() {
     const router = useRouter();
-    const [data, setData] = useState<PipelineResponse | null>(null);
+    const [data] = useState<PipelineResponse | null>(() => {
+        if (typeof window === "undefined") return null;
+        const stored = sessionStorage.getItem("pipeline_result");
+        return stored ? (JSON.parse(stored) as PipelineResponse) : null;
+    });
     const [downloading, setDownloading] = useState(false);
 
     useEffect(() => {
-        const stored = sessionStorage.getItem("pipeline_result");
-        if (stored) setData(JSON.parse(stored));
-        else router.push("/demo/upload");
-    }, [router]);
+        if (!data) router.push("/demo/upload");
+    }, [data, router]);
 
     if (!data) return null;
 
@@ -51,6 +53,7 @@ export default function CAMPage() {
     }
 
     const report = data.cam_report;
+    const parsedFiles = data.ingestion_metadata?.parsed_files || [];
 
     return (
         <div className="page-wrapper">
@@ -123,6 +126,112 @@ export default function CAMPage() {
                             <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", fontStyle: "italic" }}>
                                 &quot;{report.site_visit_notes}&quot;
                             </p>
+                        </div>
+                    )}
+
+                    {/* Ingestion Details */}
+                    {parsedFiles.length > 0 && (
+                        <div
+                            className="animate-in stagger-2"
+                            style={{
+                                padding: "var(--space-4)",
+                                background: "rgba(26,197,174,0.06)",
+                                border: "1px solid rgba(26,197,174,0.22)",
+                                borderRadius: "var(--radius-lg)",
+                                marginBottom: "var(--space-6)",
+                            }}
+                        >
+                            <h4 style={{ color: "var(--accent)", marginBottom: "var(--space-3)", fontSize: "0.95rem" }}>
+                                🧭 Ingestion Details
+                            </h4>
+
+                            <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+                                {parsedFiles.map((f) => (
+                                    <details
+                                        key={f.filename}
+                                        style={{
+                                            background: "rgba(11, 17, 27, 0.45)",
+                                            border: "1px solid var(--border)",
+                                            borderRadius: "var(--radius-md)",
+                                            padding: "var(--space-3) var(--space-4)",
+                                        }}
+                                    >
+                                        <summary
+                                            style={{
+                                                cursor: "pointer",
+                                                fontWeight: 700,
+                                                color: "var(--text-primary)",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "space-between",
+                                                gap: "var(--space-3)",
+                                            }}
+                                        >
+                                            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                                {f.filename}
+                                            </span>
+                                            <span className="badge badge-info" style={{ textTransform: "none" }}>
+                                                {f.page_count} pages
+                                            </span>
+                                        </summary>
+
+                                        <div style={{ marginTop: "var(--space-3)", display: "grid", gap: "var(--space-2)" }}>
+                                            <div style={{ fontSize: "0.8125rem", color: "var(--text-secondary)" }}>
+                                                Targeted Pages: <strong>{f.targeted_pages}</strong>
+                                            </div>
+                                            <div style={{ fontSize: "0.8125rem", color: "var(--text-secondary)" }}>
+                                                Deep Scan Pages: <strong>{f.deep_scan_pages ?? 0}</strong>
+                                            </div>
+
+                                            {f.targeted_page_numbers && f.targeted_page_numbers.length > 0 && (
+                                                <div>
+                                                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "var(--space-1)" }}>
+                                                        Full Targeted Page Numbers
+                                                    </div>
+                                                    <div
+                                                        style={{
+                                                            fontSize: "0.78rem",
+                                                            color: "var(--text-secondary)",
+                                                            lineHeight: 1.55,
+                                                            maxHeight: "90px",
+                                                            overflowY: "auto",
+                                                            padding: "var(--space-2)",
+                                                            background: "rgba(15, 23, 42, 0.55)",
+                                                            border: "1px solid var(--border)",
+                                                            borderRadius: "var(--radius-sm)",
+                                                        }}
+                                                    >
+                                                        {f.targeted_page_numbers.join(", ")}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {f.deep_scan_page_numbers && f.deep_scan_page_numbers.length > 0 && (
+                                                <div>
+                                                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "var(--space-1)" }}>
+                                                        Deep Scan Page Numbers
+                                                    </div>
+                                                    <div
+                                                        style={{
+                                                            fontSize: "0.78rem",
+                                                            color: "var(--text-secondary)",
+                                                            lineHeight: 1.55,
+                                                            maxHeight: "90px",
+                                                            overflowY: "auto",
+                                                            padding: "var(--space-2)",
+                                                            background: "rgba(15, 23, 42, 0.55)",
+                                                            border: "1px solid var(--border)",
+                                                            borderRadius: "var(--radius-sm)",
+                                                        }}
+                                                    >
+                                                        {f.deep_scan_page_numbers.join(", ")}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </details>
+                                ))}
+                            </div>
                         </div>
                     )}
 
